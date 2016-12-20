@@ -1,0 +1,18 @@
+<resources>
+    <string name="app_name">CafeLoc</string>
+    <string name="error_mandatory_param_empty">Mandatory param is empty. Please check your input
+        params
+    </string>
+    <string name="allow_coffeeloc_access_to_your_location">Allow CafeLoc access \n to your location
+    </string>
+    <string name="allow_coffeeloc_access_to_your_location_desc">
+        CafeLoc needs your location to help you find places. Allowing CafeLoc access to your
+        location will help you get better location results.
+    </string>
+    <string name="grant_access">GRANT ACCESS</string>
+    <string name="location_not_available">Could not fetch location at this point of time. Please
+        turn on Location.
+    </string>
+    <string name="fetching_details_pls_wait">Fetching details..Please wait..</string>
+    <string name="fetching_location">Fetching location</string>
+</resources>
