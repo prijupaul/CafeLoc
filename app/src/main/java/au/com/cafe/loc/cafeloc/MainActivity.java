@@ -6,9 +6,13 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.DefaultItemAnimator;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import au.com.cafe.loc.cafeloc.network.dto.ExploreVenueDto;
@@ -24,9 +28,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @BindView(R.id.button_grant_access)
     Button mButtonGrantAccess;
-    ProgressDialog mProgressDialog;
+    @BindView(R.id.ll_location_hint)
+    LinearLayout mLLLocationHint;
+    @BindView(R.id.recycler_view)
+    RecyclerView mRecyclerView;
 
-    LocationService mLocationService;
+    private ProgressDialog mProgressDialog;
+    private LocationService mLocationService;
+    private RecyclerView.LayoutManager mLayoutManager;
 
     private final int CODE_PERM_LOC = 100;
     private final String TAG = MainActivity.class.getSimpleName();
@@ -44,8 +53,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         if (PermissionManager.checkPermissions(this, PermissionManager.getLocationPermissions())) {
             mLocationService.fetchLocation();
+            mLLLocationHint.setVisibility(View.GONE);
             mProgressDialog = ProgressDialog.show(this, getString(R.string.app_name), getString(R.string.fetching_location), true);
         }
+
+        mLayoutManager = new LinearLayoutManager(this);
+        mRecyclerView.setLayoutManager(mLayoutManager);
+        mRecyclerView.setItemAnimator(new DefaultItemAnimator());
     }
 
     @Override
@@ -111,6 +125,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         longitude = String.valueOf(lon);
         mProgressDialog.setTitle(getString(R.string.app_name));
         mProgressDialog.setMessage(getString(R.string.fetching_details_pls_wait));
+        mLLLocationHint.setVisibility(View.GONE);
         requestForService();
     }
 
