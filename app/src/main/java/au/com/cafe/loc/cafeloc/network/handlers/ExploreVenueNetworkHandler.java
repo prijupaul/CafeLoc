@@ -112,10 +112,10 @@ public final class ExploreVenueNetworkHandler extends BaseNetwork {
             @Override
             public void onResponse(Call<ExploreVenueDto> call, Response<ExploreVenueDto> response) {
 
-                if (response.body().getMeta().code.compareToIgnoreCase("200") == 0) {
+                if (response.body().getMeta().getCode().compareToIgnoreCase("200") == 0) {
                     listener.onVenueDetailsFetched(response.body());
                 } else {
-                    listener.onError(response.body().getMeta().errorDetail);
+                    listener.onError(response.body().getMeta().getErrorDetail());
                 }
 
             }

@@ -15,4 +15,9 @@
     </string>
     <string name="fetching_details_pls_wait">Fetching details..Please wait..</string>
     <string name="fetching_location">Fetching location</string>
+    <string name="cafe_url_not_available">Cafe url not available</string>
+    <string name="loading">Loading</string>
+    <string name="network_not_available">Network connection is not available. Please check your
+        connection.
+    </string>
 </resources>

@@ -10,7 +10,7 @@ import java.util.Date;
 public class DateFormatUtil {
 
     public static String getDateYYYYMMDD(Date date){
-        SimpleDateFormat sdf = new SimpleDateFormat("YYYYMMdd");
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
         String currentDateandTime = sdf.format(date);
         return currentDateandTime;
     }

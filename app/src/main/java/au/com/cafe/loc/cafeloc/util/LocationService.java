@@ -17,6 +17,7 @@ import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
+import au.com.cafe.loc.cafeloc.MainActivity;
 import au.com.cafe.loc.cafeloc.R;
 
 import java.security.Provider;
@@ -27,8 +28,9 @@ import java.security.Provider;
  */
 public class LocationService extends Service {
 
-    public interface LocationServiceListener{
-        void onLocationUpdate(double lat,double lon);
+    public interface LocationServiceListener {
+        void onLocationUpdate(double lat, double lon);
+
         void onLocationError(String providerError);
     }
 
@@ -50,7 +52,7 @@ public class LocationService extends Service {
 
     private LocationServiceListener locationServiceListener;
 
-    public LocationService(Context context,LocationServiceListener locationServiceListener) {
+    public LocationService(Context context, LocationServiceListener locationServiceListener) {
         this.mContext = context;
         this.locationServiceListener = locationServiceListener;
 
@@ -58,9 +60,13 @@ public class LocationService extends Service {
         locationManagerProvider = new GetFromLocationManager(context);
     }
 
-    public void fetchLocation(){
+    public void fetchLocation() {
         locationManagerProvider.getLocation();
         playLocationProvider.getLastKnownLocation();
+    }
+
+    public void setListener(LocationServiceListener listener) {
+        this.locationServiceListener = listener;
     }
 
 
@@ -121,8 +127,6 @@ public class LocationService extends Service {
 
         Location location;
 
-        LocationServiceListener locationServiceListener;
-
         public GetFromLocationManager(Context context) {
             mContext = context;
         }
@@ -131,14 +135,14 @@ public class LocationService extends Service {
         public void onLocationChanged(Location location) {
             latitude = location.getLatitude();
             longitude = location.getLongitude();
-            if(locationServiceListener != null) {
+            if (locationServiceListener != null) {
                 locationServiceListener.onLocationUpdate(latitude, longitude);
             }
         }
 
         @Override
         public void onProviderDisabled(String provider) {
-            if(locationServiceListener != null) {
+            if (locationServiceListener != null) {
                 locationServiceListener.onLocationError("Please enable " + provider + "for better results.");
             }
         }
@@ -215,7 +219,26 @@ public class LocationService extends Service {
                 } else {
                     this.canGetLocation = true;
                     // First get location from Network Provider
-                    if (isNetworkEnabled) {
+                    if (isGPSEnabled) {
+
+                        locationManager.requestLocationUpdates(
+                                LocationManager.GPS_PROVIDER,
+                                MIN_TIME_BW_UPDATES,
+                                MIN_DISTANCE_CHANGE_FOR_UPDATES, this);
+
+                        if (locationManager != null) {
+                            location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+                            if (location != null) {
+                                latitude = location.getLatitude();
+                                longitude = location.getLongitude();
+                                locationServiceListener.onLocationUpdate(latitude, longitude);
+                            } else {
+                                locationServiceListener.onLocationError(mContext.getString(R.string.location_not_available));
+                            }
+                        }
+                    }
+                    // if GPS Enabled get lat/long using GPS Services
+                    else if (isNetworkEnabled) {
 
                         locationManager.requestLocationUpdates(
                                 LocationManager.PASSIVE_PROVIDER,
@@ -227,33 +250,12 @@ public class LocationService extends Service {
                             if (location != null) {
                                 latitude = location.getLatitude();
                                 longitude = location.getLongitude();
-                                locationServiceListener.onLocationUpdate(latitude,longitude);
-                            }
-                            else {
+                                locationServiceListener.onLocationUpdate(latitude, longitude);
+                            } else {
                                 locationServiceListener.onLocationError(mContext.getString(R.string.location_not_available));
                             }
                         }
-                    }
-                    // if GPS Enabled get lat/long using GPS Services
-                    else if (isGPSEnabled) {
-                        if (location == null) {
-                            locationManager.requestLocationUpdates(
-                                    LocationManager.GPS_PROVIDER,
-                                    MIN_TIME_BW_UPDATES,
-                                    MIN_DISTANCE_CHANGE_FOR_UPDATES, this);
 
-                            if (locationManager != null) {
-                                location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-                                if (location != null) {
-                                    latitude = location.getLatitude();
-                                    longitude = location.getLongitude();
-                                    locationServiceListener.onLocationUpdate(latitude,longitude);
-                                }
-                                else {
-                                    locationServiceListener.onLocationError(mContext.getString(R.string.location_not_available));
-                                }
-                            }
-                        }
                     }
                 }
 
@@ -311,9 +313,8 @@ public class LocationService extends Service {
             if (mLastLocation != null) {
                 latitude = mLastLocation.getLatitude();
                 longitude = mLastLocation.getLongitude();
-                locationServiceListener.onLocationUpdate(latitude,longitude);
-            }
-            else {
+                locationServiceListener.onLocationUpdate(latitude, longitude);
+            } else {
                 locationServiceListener.onLocationError(mContext.getString(R.string.location_not_available));
             }
         }
@@ -327,9 +328,5 @@ public class LocationService extends Service {
         public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
             locationServiceListener.onLocationError(connectionResult.getErrorMessage());
         }
-
-
     }
-
-
 }
