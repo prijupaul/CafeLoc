@@ -3,6 +3,7 @@ package au.com.cafe.loc.cafeloc.adapters;
 import android.graphics.Color;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,6 +18,8 @@ import java.util.ArrayList;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+
+import static android.content.ContentValues.TAG;
 
 /**
  * Created by priju.jacobpaul on 21/12/2016.
@@ -46,6 +49,7 @@ public class ExploreVenueAdapter extends RecyclerView.Adapter<ExploreVenueAdapte
 
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
+        Log.d(TAG,"onBindViewHolder");
         holder.mTVCafeName.setText(itemsArrayList.get(position).getVenue().getName());
         holder.mTVAddress.setText(itemsArrayList.get(position).getVenue().getLocation().getAddress());
         float distance = Float.valueOf(itemsArrayList.get(position).getVenue().getLocation().getDistance()) / 1000;

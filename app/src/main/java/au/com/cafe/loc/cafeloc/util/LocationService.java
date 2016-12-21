@@ -39,8 +39,10 @@ public class LocationService extends Service {
     static double latitude; // latitude
     static double longitude; // longitude
 
+    private boolean locationServiceStarted;
+
     // The minimum distance to change Updates in meters
-    private static final long MIN_DISTANCE_CHANGE_FOR_UPDATES = 10; // 10 meters
+    public static final long MIN_DISTANCE_CHANGE_FOR_UPDATES = 20; // 20 meters
 
     // The minimum time between updates in milliseconds
     private static final long MIN_TIME_BW_UPDATES = 1000 * 60 * 1; // 1 minute
@@ -61,6 +63,7 @@ public class LocationService extends Service {
     }
 
     public void fetchLocation() {
+        locationServiceStarted = true;
         locationManagerProvider.getLocation();
         playLocationProvider.getLastKnownLocation();
     }
@@ -69,6 +72,9 @@ public class LocationService extends Service {
         this.locationServiceListener = listener;
     }
 
+    public boolean isLocationServiceStarted() {
+        return locationServiceStarted;
+    }
 
     /**
      * Stop using GPS listener Calling this function will stop using GPS in your app
@@ -90,6 +96,7 @@ public class LocationService extends Service {
                 playLocationProvider.stopApiClient();
             }
 
+            locationServiceStarted = false;
         } catch (Exception e) {
             e.printStackTrace();
         }

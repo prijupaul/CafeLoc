@@ -3,6 +3,7 @@ package au.com.cafe.loc.cafeloc;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -11,7 +12,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
@@ -20,6 +20,7 @@ import android.widget.Toast;
 import au.com.cafe.loc.cafeloc.adapters.ExploreVenueAdapter;
 import au.com.cafe.loc.cafeloc.network.dto.ExploreVenueDto;
 import au.com.cafe.loc.cafeloc.network.handlers.ExploreVenueNetworkHandler;
+import au.com.cafe.loc.cafeloc.util.ExecutorUtils;
 import au.com.cafe.loc.cafeloc.util.LocationService;
 import au.com.cafe.loc.cafeloc.util.NetworkUtil;
 import au.com.cafe.loc.cafeloc.util.PermissionManager;
@@ -83,11 +84,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             if(latitude.isEmpty() || longitude.isEmpty()) {
                 mProgressDialog = ProgressDialog.show(this, getString(R.string.app_name), getString(R.string.fetching_location), true);
             }
-
-            mLocationService.fetchLocation();
-            mLocationService.setListener(this);
-            mLLLocationHint.setVisibility(View.GONE);
-            mRecyclerView.setVisibility(View.VISIBLE);
+            if(!mLocationService.isLocationServiceStarted()) {
+                mLocationService.fetchLocation();
+                mLocationService.setListener(this);
+                mLLLocationHint.setVisibility(View.GONE);
+                mRecyclerView.setVisibility(View.VISIBLE);
+            }
         }
         else {
             mLLLocationHint.setVisibility(View.VISIBLE);
@@ -96,10 +98,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     @Override
-    protected void onPause() {
-        super.onPause();
+    protected void onStop() {
+        super.onStop();
         if (mLocationService != null) {
             mLocationService.stopLocationListener();
+        }
+
+        if(mProgressDialog != null){
+            mProgressDialog.dismiss();
         }
     }
 
@@ -119,8 +125,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         if (requestCode == CODE_PERM_LOC) {
             if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+
+                mLLLocationHint.setVisibility(View.GONE);
+                mRecyclerView.setVisibility(View.VISIBLE);
+
                 mLocationService.fetchLocation();
-                mProgressDialog = ProgressDialog.show(this, getString(R.string.app_name), getString(R.string.fetching_location), true);
+                if( (mProgressDialog != null) && !mProgressDialog.isShowing()) {
+                    mProgressDialog = ProgressDialog.show(this, getString(R.string.app_name), getString(R.string.fetching_location), true);
+                }
             }
         }
     }
@@ -142,16 +154,21 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 .build(getApplicationContext());
         exploreVenueNetworkHandler.getPopularVenues(new ExploreVenueNetworkHandler.ExploreVenueNetworkHandlerListener() {
             @Override
-            public void onVenueDetailsFetched(ExploreVenueDto exploreVenueDto) {
+            public void onVenueDetailsFetched(final ExploreVenueDto exploreVenueDto) {
                 if(mProgressDialog != null) {
                     mProgressDialog.dismiss();
                 }
 
-                ArrayList<ExploreVenueDto.items> itemsArrayList = exploreVenueDto.getResponse().getGroupsArrayList().get(0).getItemsArrayList();
+                ExecutorUtils.runOnUIThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        ArrayList<ExploreVenueDto.items> itemsArrayList = exploreVenueDto.getResponse().getGroupsArrayList().get(0).getItemsArrayList();
+                        exploreVenueDto.sortOnDistance(itemsArrayList);
+                        mExploreVenueAdapter.setExploreVenueDto(itemsArrayList,MainActivity.this);
+                        mExploreVenueAdapter.notifyDataSetChanged();
+                    }
+                },1);
 
-                exploreVenueDto.sortOnDistance(itemsArrayList);
-                mExploreVenueAdapter.setExploreVenueDto(itemsArrayList,MainActivity.this);
-                mExploreVenueAdapter.notifyDataSetChanged();
             }
 
             @Override
@@ -167,10 +184,27 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public void onLocationUpdate(double lat, double lon) {
-        Log.d(TAG, "Latitude: " + lat);
-        Log.d(TAG, "Longitude: " + lon);
+
+        if(!latitude.isEmpty() &&  !longitude.isEmpty()) {
+
+            Location targetLocation = new Location("");
+            targetLocation.setLatitude(lat);
+            targetLocation.setLongitude(lon);
+
+            Location currentLocation = new Location("");
+            currentLocation.setLatitude(Double.valueOf(latitude));
+            currentLocation.setLongitude(Double.valueOf(longitude));
+
+            float inMeters = currentLocation.distanceTo(targetLocation);
+            if((inMeters < LocationService.MIN_DISTANCE_CHANGE_FOR_UPDATES) &&
+                    (mRecyclerView.getAdapter().getItemCount() > 0)){
+                return;
+            }
+        }
+
         latitude = String.valueOf(lat);
         longitude = String.valueOf(lon);
+
 
         SharedPreferenceManager.saveLatitude(latitude,getApplicationContext());
         SharedPreferenceManager.saveLongitude(longitude,getApplicationContext());
@@ -186,7 +220,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     public void onLocationError(String providerError) {
         mProgressDialog.dismiss();
-        Toast.makeText(this, providerError, Toast.LENGTH_LONG).show();
+        if(latitude.isEmpty() || longitude.isEmpty()) {
+            Toast.makeText(this, providerError, Toast.LENGTH_LONG).show();
+        }
     }
 
     @Override
