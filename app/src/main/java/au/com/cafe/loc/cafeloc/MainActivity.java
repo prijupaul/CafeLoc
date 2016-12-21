@@ -219,9 +219,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public void onLocationError(String providerError) {
-        mProgressDialog.dismiss();
-        if(latitude.isEmpty() || longitude.isEmpty()) {
+        if(mProgressDialog != null) {
+            mProgressDialog.dismiss();
+        }
+        if(mRecyclerView.getAdapter().getItemCount() == 0) {
             Toast.makeText(this, providerError, Toast.LENGTH_LONG).show();
+            // Load with previous location.
+            if(!latitude.isEmpty() && !longitude.isEmpty()){
+                requestForService();
+            }
         }
     }
 
