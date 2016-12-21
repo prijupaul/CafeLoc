@@ -26,7 +26,7 @@ public class ExploreVenueDto {
         return response;
     }
 
-    public class meta {
+    public static class meta {
         @SerializedName("code")
         String code;
         @SerializedName("requestId")
@@ -47,7 +47,7 @@ public class ExploreVenueDto {
         }
     }
 
-    public class response{
+    public static class response{
 
         @SerializedName("groups")
         ArrayList<groups> groupsArrayList = new ArrayList<>();
@@ -57,7 +57,7 @@ public class ExploreVenueDto {
         }
     }
 
-    public class groups{
+    public static class groups{
         @SerializedName("type")
         String type;
 
@@ -70,7 +70,7 @@ public class ExploreVenueDto {
 
     }
 
-    public class items{
+    public static class items{
         @SerializedName("venue")
         venue venue;
 
@@ -88,7 +88,7 @@ public class ExploreVenueDto {
 
     }
 
-    public class venue {
+    public static class venue {
 
         @SerializedName("id")
         String id;
@@ -140,7 +140,7 @@ public class ExploreVenueDto {
         }
     }
 
-    public class contact{
+    public static class contact{
         @SerializedName("phone")
         String phone;
 
@@ -156,7 +156,7 @@ public class ExploreVenueDto {
         }
     }
 
-    public class location{
+    public static class location{
         @SerializedName("address")
         private String address;
 
@@ -186,7 +186,7 @@ public class ExploreVenueDto {
         }
     }
 
-    public class tips{
+    public static class tips{
         @SerializedName("canonicalUrl")
         public String canonicalUrl;
 

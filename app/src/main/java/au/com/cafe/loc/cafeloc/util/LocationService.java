@@ -266,7 +266,7 @@ public class LocationService extends Service {
                     }
                 }
 
-            } catch (Exception e) {
+            } catch (RuntimeException e) {
                 e.printStackTrace();
             }
 
