@@ -158,16 +158,16 @@ public class ExploreVenueDto {
 
     public static class location{
         @SerializedName("address")
-        private String address;
+        String address;
 
         @SerializedName("lat")
-        private String lat;
+        String lat;
 
         @SerializedName("lng")
-        private String lng;
+        String lng;
 
         @SerializedName("distance")
-        private String distance;
+        String distance;
 
         public String getAddress() {
             return address;
